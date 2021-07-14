@@ -19,9 +19,11 @@ func getQueryCommand(name, usage string) *cobra.Command {
 	cf := addCommonFlags(cmd)
 
 	strs := []string{}
+	ascurl := false
 
 	pflags := cmd.PersistentFlags()
 	pflags.StringArrayVarP(&strs, "filter", "f", []string{}, "filter values like key=value")
+	pflags.BoolVarP(&ascurl, "curl", "", false, "output elasticsearch request as curl")
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		cfg, err := config.ReadConfig(cf.config)
@@ -47,7 +49,8 @@ func getQueryCommand(name, usage string) *cobra.Command {
 		query.Output = cf.output
 
 		result, err := client.Query(cmd.Context(), cf.env, query, elasticsearch.Options{
-			Debug: cf.debug,
+			Debug:  cf.debug,
+			AsCurl: ascurl,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to run query: %w", err)
