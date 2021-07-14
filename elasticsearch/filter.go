@@ -64,6 +64,7 @@ func ParseFilter(filter string, tfs TimeFilterSettings) (*Filter, error) {
 
 		return unicode.IsLetter(ch) || unicode.IsDigit(ch)
 	}
+	s.Error = func(s *scanner.Scanner, msg string) {}
 
 	tokens := []string{}
 	for token := s.Scan(); token != scanner.EOF; token = s.Scan() {
