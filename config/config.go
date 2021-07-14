@@ -39,6 +39,7 @@ type Config struct {
 }
 
 func (e *Env) GetEndpoint() string {
+	rand.Seed(time.Now().UTC().UnixNano())
 	return e.Endpoints[rand.Intn(len(e.Endpoints))]
 }
 

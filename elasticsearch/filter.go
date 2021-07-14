@@ -198,57 +198,59 @@ func rangeStatement(op, key, value string) map[string]interface{} {
 	}
 }
 
-func ComposeFilter(f *Filter) (interface{}, error) {
+func ComposeFilter(f *Filter) ([]interface{}, error) {
+	var res interface{} = nil
+
 	switch f.Operation {
 	case EQ:
-		return map[string]interface{}{
+		res = map[string]interface{}{
 			"match_phrase": map[string]string{
 				f.Key: f.Value[0],
 			},
-		}, nil
+		}
 
 	case TEQ:
-		return map[string]interface{}{
+		res = map[string]interface{}{
 			"term": map[string]interface{}{
 				f.Key: map[string]string{
 					"value": f.Value[0],
 				},
 			},
-		}, nil
+		}
 
 	case NEQ:
-		return map[string]interface{}{
+		res = map[string]interface{}{
 			"must_not": map[string]interface{}{
 				"match_phrase": map[string]string{
 					f.Key: f.Value[0],
 				},
 			},
-		}, nil
+		}
 
 	case GT:
-		return rangeStatement("gt", f.Key, f.Value[0]), nil
+		res = rangeStatement("gt", f.Key, f.Value[0])
 
 	case GTE:
-		return rangeStatement("gte", f.Key, f.Value[0]), nil
+		res = rangeStatement("gte", f.Key, f.Value[0])
 
 	case LT:
-		return rangeStatement("lt", f.Key, f.Value[0]), nil
+		res = rangeStatement("lt", f.Key, f.Value[0])
 
 	case LTE:
-		return rangeStatement("lte", f.Key, f.Value[0]), nil
+		res = rangeStatement("lte", f.Key, f.Value[0])
 
 	case BT:
-		return map[string]interface{}{
+		res = map[string]interface{}{
 			"range": map[string]interface{}{
 				f.Key: map[string]string{
 					"gte": f.Value[0],
 					"lte": f.Value[1],
 				},
 			},
-		}, nil
+		}
 
 	case IN:
-		shoulds := []map[string]interface{}{}
+		shoulds := []interface{}{}
 		for _, v := range f.Value {
 			shoulds = append(shoulds, map[string]interface{}{
 				"match_phrase": map[string]string{
@@ -257,16 +259,18 @@ func ComposeFilter(f *Filter) (interface{}, error) {
 			})
 		}
 
-		return map[string]interface{}{
-			"should": shoulds,
-		}, nil
+		return shoulds, nil
 
 	case LK:
-		return map[string]interface{}{
+		res = map[string]interface{}{
 			"match_phrase": map[string]string{
 				f.Key: f.Value[0],
 			},
-		}, nil
+		}
+	}
+
+	if res != nil {
+		return []interface{}{res}, nil
 	}
 
 	return nil, fmt.Errorf("unknown operation='%s'", f.Operation)

@@ -214,7 +214,7 @@ func TestComposeFilter(t *testing.T) {
 		name   string
 		err    bool
 		filter el.Filter
-		output interface{}
+		output []interface{}
 	}{
 		{
 			name: "basic equals",
@@ -223,9 +223,11 @@ func TestComposeFilter(t *testing.T) {
 				Value:     []string{"asd"},
 				Operation: el.EQ,
 			},
-			output: map[string]interface{}{
-				"match_phrase": map[string]string{
-					"qwe": "asd",
+			output: []interface{}{
+				map[string]interface{}{
+					"match_phrase": map[string]string{
+						"qwe": "asd",
+					},
 				},
 			},
 		},
@@ -236,10 +238,12 @@ func TestComposeFilter(t *testing.T) {
 				Value:     []string{"asd"},
 				Operation: el.TEQ,
 			},
-			output: map[string]interface{}{
-				"term": map[string]interface{}{
-					"qwe": map[string]string{
-						"value": "asd",
+			output: []interface{}{
+				map[string]interface{}{
+					"term": map[string]interface{}{
+						"qwe": map[string]string{
+							"value": "asd",
+						},
 					},
 				},
 			},
@@ -251,10 +255,12 @@ func TestComposeFilter(t *testing.T) {
 				Value:     []string{"asd"},
 				Operation: el.NEQ,
 			},
-			output: map[string]interface{}{
-				"must_not": map[string]interface{}{
-					"match_phrase": map[string]string{
-						"qwe": "asd",
+			output: []interface{}{
+				map[string]interface{}{
+					"must_not": map[string]interface{}{
+						"match_phrase": map[string]string{
+							"qwe": "asd",
+						},
 					},
 				},
 			},
@@ -266,10 +272,12 @@ func TestComposeFilter(t *testing.T) {
 				Value:     []string{"asd"},
 				Operation: el.GT,
 			},
-			output: map[string]interface{}{
-				"range": map[string]interface{}{
-					"qwe": map[string]string{
-						"gt": "asd",
+			output: []interface{}{
+				map[string]interface{}{
+					"range": map[string]interface{}{
+						"qwe": map[string]string{
+							"gt": "asd",
+						},
 					},
 				},
 			},
@@ -281,10 +289,12 @@ func TestComposeFilter(t *testing.T) {
 				Value:     []string{"asd"},
 				Operation: el.GTE,
 			},
-			output: map[string]interface{}{
-				"range": map[string]interface{}{
-					"qwe": map[string]string{
-						"gte": "asd",
+			output: []interface{}{
+				map[string]interface{}{
+					"range": map[string]interface{}{
+						"qwe": map[string]string{
+							"gte": "asd",
+						},
 					},
 				},
 			},
@@ -296,10 +306,12 @@ func TestComposeFilter(t *testing.T) {
 				Value:     []string{"asd"},
 				Operation: el.LT,
 			},
-			output: map[string]interface{}{
-				"range": map[string]interface{}{
-					"qwe": map[string]string{
-						"lt": "asd",
+			output: []interface{}{
+				map[string]interface{}{
+					"range": map[string]interface{}{
+						"qwe": map[string]string{
+							"lt": "asd",
+						},
 					},
 				},
 			},
@@ -311,10 +323,12 @@ func TestComposeFilter(t *testing.T) {
 				Value:     []string{"asd"},
 				Operation: el.LTE,
 			},
-			output: map[string]interface{}{
-				"range": map[string]interface{}{
-					"qwe": map[string]string{
-						"lte": "asd",
+			output: []interface{}{
+				map[string]interface{}{
+					"range": map[string]interface{}{
+						"qwe": map[string]string{
+							"lte": "asd",
+						},
 					},
 				},
 			},
@@ -326,12 +340,10 @@ func TestComposeFilter(t *testing.T) {
 				Value:     []string{"asd"},
 				Operation: el.IN,
 			},
-			output: map[string]interface{}{
-				"should": []map[string]interface{}{
-					{
-						"match_phrase": map[string]string{
-							"qwe": "asd",
-						},
+			output: []interface{}{
+				map[string]interface{}{
+					"match_phrase": map[string]string{
+						"qwe": "asd",
 					},
 				},
 			},
@@ -343,22 +355,20 @@ func TestComposeFilter(t *testing.T) {
 				Value:     []string{"asd", "zxc", "lkj"},
 				Operation: el.IN,
 			},
-			output: map[string]interface{}{
-				"should": []map[string]interface{}{
-					{
-						"match_phrase": map[string]string{
-							"qwe": "asd",
-						},
+			output: []interface{}{
+				map[string]interface{}{
+					"match_phrase": map[string]string{
+						"qwe": "asd",
 					},
-					{
-						"match_phrase": map[string]string{
-							"qwe": "zxc",
-						},
+				},
+				map[string]interface{}{
+					"match_phrase": map[string]string{
+						"qwe": "zxc",
 					},
-					{
-						"match_phrase": map[string]string{
-							"qwe": "lkj",
-						},
+				},
+				map[string]interface{}{
+					"match_phrase": map[string]string{
+						"qwe": "lkj",
 					},
 				},
 			},

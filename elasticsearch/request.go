@@ -10,7 +10,9 @@ type RawOrder struct {
 }
 
 type RawFilter struct {
-	Filter []interface{} `json:"filter"`
+	Filter               []interface{} `json:"filter"`
+	Should               interface{}   `json:"should"`
+	MinimumShouldMatches int           `json:"minimum_should_match"`
 }
 
 type RawQuery struct {
@@ -55,18 +57,27 @@ func ComposeRequest(q *Query) ([]byte, error) {
 	}
 
 	rfs := []interface{}{}
+	shoulds := []interface{}{}
+	shouldsCnt := 0
 
 	for _, f := range q.Filters {
 		rf, err := ComposeFilter(f)
 		if err != nil {
 			return nil, fmt.Errorf("failed to compose filter for %v: %w", f, err)
 		}
-		rfs = append(rfs, rf)
+		if f.Operation == IN {
+			shouldsCnt++
+			shoulds = append(shoulds, rf...)
+		} else {
+			rfs = append(rfs, rf...)
+		}
 	}
 
 	rq := RawQuery{
 		Bool: RawFilter{
-			Filter: rfs,
+			Filter:               rfs,
+			Should:               shoulds,
+			MinimumShouldMatches: shouldsCnt,
 		},
 	}
 
