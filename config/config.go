@@ -22,6 +22,7 @@ type Env struct {
 	TZ            string         `toml:"timezone"`
 	Timezone      *time.Location `toml:"-"`
 	TimeFormat    string         `toml:"time_format"`
+	Limit         int            `toml:"limit"`
 	Output        string         `toml:"output"`
 }
 
@@ -64,6 +65,18 @@ func (e *Env) GetTimeFormat(tf string) string {
 	}
 
 	return time.RFC3339
+}
+
+func (e *Env) GetLimit(limit int) int {
+	if limit > 0 {
+		return limit
+	}
+
+	if e.Limit > 0 {
+		return e.Limit
+	}
+
+	return 10
 }
 
 func (c *Config) GetEnv(env string) (*Env, error) {

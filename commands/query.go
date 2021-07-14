@@ -20,10 +20,12 @@ func getQueryCommand(name, usage string) *cobra.Command {
 
 	strs := []string{}
 	ascurl := false
+	limit := 0
 
 	pflags := cmd.PersistentFlags()
 	pflags.StringArrayVarP(&strs, "filter", "f", []string{}, "filter values like key=value")
 	pflags.BoolVarP(&ascurl, "curl", "", false, "output elasticsearch request as curl")
+	pflags.IntVarP(&limit, "limit", "l", 10, "specify limit for output records")
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		cfg, err := config.ReadConfig(cf.config)
@@ -62,6 +64,7 @@ func getQueryCommand(name, usage string) *cobra.Command {
 
 		query.Index = cf.index
 		query.Output = cf.output
+		query.Limit = e.GetLimit(limit)
 
 		result, err := client.Query(cmd.Context(), e, query, elasticsearch.Options{
 			Debug:  cf.debug,
