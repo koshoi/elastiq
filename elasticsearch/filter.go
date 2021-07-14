@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"text/scanner"
+	"time"
 	"unicode"
 )
 
@@ -28,6 +29,12 @@ type Filter struct {
 	Operation FilterOperation
 }
 
+type TimeFilterSettings struct {
+	TimeZone   *time.Location
+	TimeFormat string
+	Now        *time.Time
+}
+
 // golang's strconv.Unquote probably works better with double quotes
 // but it does not work with single and backticks as I expected
 func unquoteValue(str string) string {
@@ -43,7 +50,7 @@ func unquoteValue(str string) string {
 	}
 }
 
-func ParseFilter(filter string) (*Filter, error) {
+func ParseFilter(filter string, tfs TimeFilterSettings) (*Filter, error) {
 	f := Filter{}
 
 	var s scanner.Scanner
@@ -125,14 +132,33 @@ func ParseFilter(filter string) (*Filter, error) {
 		f.Operation = BT
 		f.Value = []string{unquoteValue(value), unquoteValue(tokens[3])}
 
-	// case "time", "intime", "TIME", "INTIME":
-	// 	if len(tokens) < 3 {
-	// 		return nil, fmt.Errorf("missing value")
-	// 	} else if len(tokens) > 3 {
-	// 		return nil, fmt.Errorf("too many values")
-	// 	}
-	// 	f.Operation = BT
-	// 	f.Value = []string{unquoteValue(value)}
+	case "time", "intime", "TIME", "INTIME":
+		if len(tokens) < 4 {
+			return nil, fmt.Errorf("missing values")
+		} else if len(tokens) > 4 {
+			return nil, fmt.Errorf("too many values")
+		}
+
+		now := time.Now().In(tfs.TimeZone)
+		if tfs.Now != nil {
+			now = (*tfs.Now).In(tfs.TimeZone)
+		}
+
+		from, err := ParseDate(tokens[2], now)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse str='%s' as date: %w", tokens[2], err)
+		}
+
+		to, err := ParseDate(tokens[3], now)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse str='%s' as date: %w", tokens[3], err)
+		}
+
+		f.Operation = BT
+		f.Value = []string{
+			unquoteValue(from.In(tfs.TimeZone).Format(tfs.TimeFormat)),
+			unquoteValue(to.In(tfs.TimeZone).Format(tfs.TimeFormat)),
+		}
 
 	// case "like", "LIKE", "~":
 	// 	if len(tokens) < 3 {
@@ -213,11 +239,9 @@ func ComposeFilter(f *Filter) (interface{}, error) {
 	case BT:
 		return map[string]interface{}{
 			"range": map[string]interface{}{
-				"range": map[string]interface{}{
-					f.Key: map[string]string{
-						"gte": f.Value[0],
-						"lte": f.Value[1],
-					},
+				f.Key: map[string]string{
+					"gte": f.Value[0],
+					"lte": f.Value[1],
 				},
 			},
 		}, nil

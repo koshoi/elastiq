@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/BurntSushi/toml"
 )
@@ -18,6 +19,9 @@ type Env struct {
 	Authorization *Authorization `toml:"authorization"`
 	Index         string         `toml:"index"`
 	IsDefault     bool           `toml:"default"`
+	TZ            string         `toml:"timezone"`
+	Timezone      *time.Location `toml:"-"`
+	TimeFormat    string         `toml:"time_format"`
 	Output        string         `toml:"output"`
 }
 
@@ -35,6 +39,31 @@ type Config struct {
 
 func (e *Env) GetEndpoint() string {
 	return e.Endpoints[rand.Intn(len(e.Endpoints))]
+}
+
+func (e *Env) GetTimezone(tz string) (*time.Location, error) {
+	if tz != "" {
+		return e.Timezone, nil
+	}
+
+	timezone, err := time.LoadLocation(tz)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get timezone from string='%s': %w", tz, err)
+	}
+
+	return timezone, nil
+}
+
+func (e *Env) GetTimeFormat(tf string) string {
+	if tf != "" {
+		return tf
+	}
+
+	if e.TimeFormat != "" {
+		return e.TimeFormat
+	}
+
+	return time.RFC3339
 }
 
 func (c *Config) GetEnv(env string) (*Env, error) {

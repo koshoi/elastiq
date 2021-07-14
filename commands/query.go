@@ -31,13 +31,28 @@ func getQueryCommand(name, usage string) *cobra.Command {
 			return err
 		}
 
+		e, err := cfg.GetEnv(cf.env)
+		if err != nil {
+			return err
+		}
+
+		tz, err := e.GetTimezone(cf.tz)
+		if err != nil {
+			return err
+		}
+
+		timeSettings := elasticsearch.TimeFilterSettings{
+			TimeZone:   tz,
+			TimeFormat: e.GetTimeFormat(cf.tf),
+		}
+
 		client := elasticsearch.NewClient(cfg)
 		query := &elasticsearch.Query{
 			Filters: []*elasticsearch.Filter{},
 		}
 
 		for _, v := range strs {
-			filter, err := elasticsearch.ParseFilter(v)
+			filter, err := elasticsearch.ParseFilter(v, timeSettings)
 			if err != nil {
 				return fmt.Errorf("failed to parse filter='%s': %w", v, err)
 			}
@@ -48,7 +63,7 @@ func getQueryCommand(name, usage string) *cobra.Command {
 		query.Index = cf.index
 		query.Output = cf.output
 
-		result, err := client.Query(cmd.Context(), cf.env, query, elasticsearch.Options{
+		result, err := client.Query(cmd.Context(), e, query, elasticsearch.Options{
 			Debug:  cf.debug,
 			AsCurl: ascurl,
 		})

@@ -13,6 +13,8 @@ type commonFlags struct {
 	output string
 	index  string
 	debug  bool
+	tz     string
+	tf     string
 }
 
 func addCommonFlags(cmd *cobra.Command) *commonFlags {
@@ -30,6 +32,8 @@ func addCommonFlags(cmd *cobra.Command) *commonFlags {
 	flags.StringVarP(&cf.output, "output", "o", "", "specify output")
 	flags.StringVarP(&cf.index, "index", "i", "", "specify index for querying")
 	flags.BoolVarP(&cf.debug, "debug", "d", false, "enable debug")
+	flags.StringVarP(&cf.tz, "timezone", "t", "", "specify timezone to use to compose time filters")
+	flags.StringVarP(&cf.tf, "timeformat", "T", "", "specify golang timeformat to use to compose time filters")
 
 	return &cf
 }

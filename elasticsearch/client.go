@@ -15,7 +15,7 @@ import (
 )
 
 type Client interface {
-	Query(ctx context.Context, env string, q *Query, o Options) (io.Reader, error)
+	Query(ctx context.Context, env *config.Env, q *Query, o Options) (io.Reader, error)
 }
 
 type client struct {
@@ -90,15 +90,10 @@ func applyOutput(r io.Reader, o *config.Output) (io.Reader, error) {
 	return nil, fmt.Errorf("format='%s' is not implemented", o.Format)
 }
 
-func (c *client) Query(ctx context.Context, env string, q *Query, o Options) (io.Reader, error) {
+func (c *client) Query(ctx context.Context, e *config.Env, q *Query, o Options) (io.Reader, error) {
 	body, err := ComposeRequest(q)
 	if err != nil {
 		return nil, fmt.Errorf("failed to compose request: %w", err)
-	}
-
-	e, err := c.config.GetEnv(env)
-	if err != nil {
-		return nil, err
 	}
 
 	index := q.Index

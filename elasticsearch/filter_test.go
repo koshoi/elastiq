@@ -2,6 +2,7 @@ package elasticsearch_test
 
 import (
 	"testing"
+	"time"
 
 	el "github.com/koshoi/elastiq/elasticsearch"
 	"github.com/stretchr/testify/require"
@@ -150,6 +151,15 @@ func TestParseFilter(t *testing.T) {
 			},
 		},
 		{
+			name:  "intime",
+			input: "qwe intime -1d now",
+			output: el.Filter{
+				Operation: el.BT,
+				Key:       "qwe",
+				Value:     []string{"2021-07-13T15:38:34Z", "2021-07-14T15:38:34Z"},
+			},
+		},
+		{
 			name:  "no input",
 			input: "",
 			err:   true,
@@ -183,7 +193,12 @@ func TestParseFilter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			f, err := el.ParseFilter(tt.input)
+			now := time.Date(2021, time.July, 14, 15, 38, 34, 0, time.UTC)
+			f, err := el.ParseFilter(tt.input, el.TimeFilterSettings{
+				TimeZone:   time.UTC,
+				TimeFormat: time.RFC3339,
+				Now:        &now,
+			})
 			if tt.err {
 				require.Error(t, err)
 			} else {
