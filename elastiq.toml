@@ -1,0 +1,13 @@
+[env.dev]
+endpoints = ["http://localhost:9200"]
+default   = true
+index     = "mydata-*"
+output    = "pretty"
+
+[output.pretty]
+exclude = ["kubernetes", "message", "@timestamp"]
+format = "json"
+
+[output.message]
+only = ["message"]
+format = "json"
