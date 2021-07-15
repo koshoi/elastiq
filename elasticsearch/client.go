@@ -4,10 +4,8 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -28,66 +26,6 @@ type response struct {
 			Source map[string]interface{} `json:"_source"`
 		} `json:"hits"`
 	} `json:"hits"`
-}
-
-func jsonOutput(records []map[string]interface{}) (io.Reader, error) {
-	buf := &bytes.Buffer{}
-	enc := json.NewEncoder(buf)
-	enc.SetEscapeHTML(false)
-	enc.SetIndent("", "  ")
-
-	for _, v := range records {
-		err := enc.Encode(v)
-		if err != nil {
-			return nil, fmt.Errorf("failed to marshal final result: %w", err)
-		}
-	}
-
-	return bytes.NewReader(buf.Bytes()), nil
-}
-
-func applyOutputFilters(record map[string]interface{}, o *config.Output) map[string]interface{} {
-	if o.Only != nil {
-		final := map[string]interface{}{}
-		for _, k := range o.Only {
-			final[k] = record[k]
-		}
-
-		return final
-	}
-
-	if o.Exclude != nil {
-		for _, k := range o.Exclude {
-			delete(record, k)
-		}
-	}
-
-	return record
-}
-
-func applyOutput(r io.Reader, o *config.Output) (io.Reader, error) {
-	j, err := ioutil.ReadAll(r)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read all response: %w", err)
-	}
-
-	resp := response{}
-
-	err = json.Unmarshal(j, &resp)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse response: %w", err)
-	}
-
-	records := make([]map[string]interface{}, 0, len(resp.Hits.Hits))
-	for _, v := range resp.Hits.Hits {
-		records = append(records, applyOutputFilters(v.Source, o))
-	}
-
-	if o.Format == "json" {
-		return jsonOutput(records)
-	}
-
-	return nil, fmt.Errorf("format='%s' is not implemented", o.Format)
 }
 
 func (c *client) Query(ctx context.Context, e *config.Env, q *Query, o Options) (io.Reader, error) {
@@ -150,6 +88,10 @@ func (c *client) Query(ctx context.Context, e *config.Env, q *Query, o Options) 
 
 	if o.Raw {
 		return res.Body, nil
+	}
+
+	if o.Recursive {
+		output.Decode = !output.Decode
 	}
 
 	return applyOutput(res.Body, output)

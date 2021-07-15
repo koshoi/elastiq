@@ -20,12 +20,14 @@ func getQueryCommand(name, usage string) *cobra.Command {
 
 	strs := []string{}
 	ascurl := false
+	toggleRecursive := false
 	limit := 0
 
 	pflags := cmd.PersistentFlags()
 	pflags.StringArrayVarP(&strs, "filter", "f", []string{}, "filter values like key=value")
 	pflags.BoolVarP(&ascurl, "curl", "", false, "output elasticsearch request as curl")
 	pflags.IntVarP(&limit, "limit", "l", 10, "specify limit for output records")
+	pflags.BoolVarP(&toggleRecursive, "recursive", "R", false, "toggle recursive decoding")
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		cfg, err := config.ReadConfig(cf.config)
@@ -67,8 +69,9 @@ func getQueryCommand(name, usage string) *cobra.Command {
 		query.Limit = e.GetLimit(limit)
 
 		result, err := client.Query(cmd.Context(), e, query, elasticsearch.Options{
-			Debug:  cf.debug,
-			AsCurl: ascurl,
+			Debug:     cf.debug,
+			AsCurl:    ascurl,
+			Recursive: toggleRecursive,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to run query: %w", err)

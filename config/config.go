@@ -30,6 +30,7 @@ type Output struct {
 	Format    string   `toml:"format"`
 	Exclude   []string `toml:"exclude"`
 	Only      []string `toml:"only"`
+	Decode    bool     `toml:"decode_recursively"`
 	IsDefault bool     `toml:"default"`
 }
 

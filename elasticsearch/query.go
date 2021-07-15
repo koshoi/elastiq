@@ -14,7 +14,8 @@ type Query struct {
 }
 
 type Options struct {
-	Debug  bool
-	Raw    bool
-	AsCurl bool
+	Debug     bool
+	Recursive bool
+	Raw       bool
+	AsCurl    bool
 }
