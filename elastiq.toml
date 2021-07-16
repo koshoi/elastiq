@@ -1,7 +1,13 @@
 [env.dev]
 endpoints = ["http://localhost:9200"]
 default   = true
-index     = "mydata-*"
+index     = "dev-*"
+output    = "pretty"
+
+[env.prod]
+endpoints = ["http://localhost:9299"]
+default   = false
+index     = "prod-*"
 output    = "pretty"
 
 [output.pretty]
@@ -11,4 +17,7 @@ decode_recursively = true
 
 [output.message]
 only = ["message"]
+format = "json"
+
+[output.all]
 format = "json"
