@@ -87,55 +87,65 @@ func decodeHTTPRequest(str string) interface{} {
 	return result
 }
 
-func DecodeString(str string) (interface{}, bool) {
+func DecodeString(str string, dmap map[string]bool) (interface{}, bool) {
 	raw := []byte(str)
 	{
 		v := map[string]interface{}{}
-		if err := json.Unmarshal(raw, &v); err == nil {
-			return v, true
+		if dmap["json"] {
+			if err := json.Unmarshal(raw, &v); err == nil {
+				return v, true
+			}
 		}
 
-		if err := yaml.Unmarshal(raw, &v); err == nil {
-			return v, true
+		if dmap["yaml"] {
+			if err := yaml.Unmarshal(raw, &v); err == nil {
+				return v, true
+			}
 		}
 	}
 
 	{
 		v := []interface{}{}
-		if err := json.Unmarshal(raw, &v); err == nil {
-			return v, true
+		if dmap["json"] {
+			if err := json.Unmarshal(raw, &v); err == nil {
+				return v, true
+			}
 		}
 
-		if err := yaml.Unmarshal(raw, &v); err == nil {
-			return v, true
+		if dmap["yaml"] {
+			if err := yaml.Unmarshal(raw, &v); err == nil {
+				return v, true
+			}
 		}
 	}
 
 	{
-		v := decodeHTTPRequest(str)
-		if v != nil {
-			return v, true
+		if dmap["http"] {
+			v := decodeHTTPRequest(str)
+			if v != nil {
+				return v, true
+			}
 		}
 	}
 
 	return str, false
 }
 
-func RecursiveDecode(i interface{}) interface{} {
+func RecursiveDecode(i interface{}, dmap map[string]bool) interface{} {
 	switch vv := i.(type) {
 	case map[string]interface{}:
 		for k, v := range vv {
-			vv[k] = RecursiveDecode(v)
+			vv[k] = RecursiveDecode(v, dmap)
 		}
 
 	case []interface{}:
 		for k, v := range vv {
-			vv[k] = RecursiveDecode(v)
+			vv[k] = RecursiveDecode(v, dmap)
 		}
 
 	case string:
-		if v, changed := DecodeString(vv); changed {
-			return RecursiveDecode(v)
+		if v, changed := DecodeString(vv, dmap); changed {
+			return RecursiveDecode(v, dmap)
 		}
 
 		return vv
@@ -158,9 +168,9 @@ func applyOutputFilters(record map[string]interface{}, o *config.Output) map[str
 		}
 	}
 
-	if o.Decode {
+	if len(o.Decode) > 0 {
 		for k, v := range record {
-			record[k] = RecursiveDecode(v)
+			record[k] = RecursiveDecode(v, o.Decode)
 		}
 	}
 

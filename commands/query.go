@@ -4,10 +4,12 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/koshoi/elastiq/config"
 	"github.com/koshoi/elastiq/elasticsearch"
 	"github.com/spf13/cobra"
+	"github.com/spf13/pflag"
 )
 
 func getQueryCommand(name, usage string) *cobra.Command {
@@ -20,14 +22,14 @@ func getQueryCommand(name, usage string) *cobra.Command {
 
 	strs := []string{}
 	ascurl := false
-	toggleRecursive := false
+	recursive := ""
 	limit := 0
 
 	pflags := cmd.PersistentFlags()
 	pflags.StringArrayVarP(&strs, "filter", "f", []string{}, "filter values like key=value")
 	pflags.BoolVarP(&ascurl, "curl", "", false, "output elasticsearch request as curl")
 	pflags.IntVarP(&limit, "limit", "l", 10, "specify limit for output records")
-	pflags.BoolVarP(&toggleRecursive, "recursive", "R", false, "toggle recursive decoding")
+	pflags.StringVarP(&recursive, "recursive", "R", "", "toggle recursive decoding")
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		cfg, err := config.ReadConfig(cf.config)
@@ -68,11 +70,20 @@ func getQueryCommand(name, usage string) *cobra.Command {
 		query.Output = cf.output
 		query.Limit = e.GetLimit(limit)
 
-		result, err := client.Query(cmd.Context(), e, query, elasticsearch.Options{
+		options := elasticsearch.Options{
 			Debug:     cf.debug,
 			AsCurl:    ascurl,
-			Recursive: toggleRecursive,
+			Recursive: nil,
+		}
+
+		cmd.Flags().Visit(func(f *pflag.Flag) {
+			if f.Name == "recursive" {
+				rlist := strings.Split(recursive, ",")
+				options.Recursive = &rlist
+			}
 		})
+
+		result, err := client.Query(cmd.Context(), e, query, options)
 		if err != nil {
 			return fmt.Errorf("failed to run query: %w", err)
 		}

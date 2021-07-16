@@ -27,16 +27,26 @@ type Env struct {
 }
 
 type Output struct {
-	Format    string   `toml:"format"`
-	Exclude   []string `toml:"exclude"`
-	Only      []string `toml:"only"`
-	Decode    bool     `toml:"decode_recursively"`
-	IsDefault bool     `toml:"default"`
+	Format    string          `toml:"format"`
+	Exclude   []string        `toml:"exclude"`
+	Only      []string        `toml:"only"`
+	D         interface{}     `toml:"decode_recursively"`
+	Decode    map[string]bool `toml:"-"`
+	IsDefault bool            `toml:"default"`
 }
 
 type Config struct {
-	Envs    map[string]Env    `toml:"env"`
-	Outputs map[string]Output `toml:"output"`
+	Envs    map[string]*Env    `toml:"env"`
+	Outputs map[string]*Output `toml:"output"`
+}
+
+func FromStringList(l []string) map[string]bool {
+	vv := map[string]bool{}
+	for _, v := range l {
+		vv[v] = true
+	}
+
+	return vv
 }
 
 func (e *Env) GetEndpoint() string {
@@ -88,12 +98,12 @@ func (c *Config) GetEnv(env string) (*Env, error) {
 			return nil, fmt.Errorf("env='%s' not found", env)
 		}
 
-		return &e, nil
+		return e, nil
 	}
 
 	for _, v := range c.Envs {
 		if v.IsDefault {
-			return &v, nil
+			return v, nil
 		}
 	}
 
@@ -111,12 +121,12 @@ func (c *Config) GetOutput(env *Env, output string) (*Output, error) {
 			return nil, fmt.Errorf("output='%s' not found", output)
 		}
 
-		return &o, nil
+		return o, nil
 	}
 
 	for _, v := range c.Outputs {
 		if v.IsDefault {
-			return &v, nil
+			return v, nil
 		}
 	}
 
@@ -149,6 +159,31 @@ func (c *Config) Validate() error {
 	for k, v := range c.Envs {
 		if len(v.Endpoints) == 0 {
 			return fmt.Errorf("env='%s' has zero endpoints", k)
+		}
+	}
+
+	for k, v := range c.Outputs {
+		switch vv := v.D.(type) {
+		case nil:
+			v.Decode = map[string]bool{}
+
+		case bool:
+			if vv {
+				v.Decode = map[string]bool{
+					"http": true,
+					"yaml": true,
+					"json": true,
+				}
+			}
+
+		case []string:
+			v.Decode = map[string]bool{}
+			for _, vvv := range vv {
+				v.Decode[vvv] = true
+			}
+
+		default:
+			return fmt.Errorf("can't handle %v as decode_recursively in output='%s', allowed values are bool or []string", vv, k)
 		}
 	}
 

@@ -90,8 +90,8 @@ func (c *client) Query(ctx context.Context, e *config.Env, q *Query, o Options) 
 		return res.Body, nil
 	}
 
-	if o.Recursive {
-		output.Decode = !output.Decode
+	if o.Recursive != nil {
+		output.Decode = config.FromStringList(*o.Recursive)
 	}
 
 	return applyOutput(res.Body, output)

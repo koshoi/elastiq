@@ -127,7 +127,7 @@ func TestDecodeString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			output, changed := el.DecodeString(tt.input)
+			output, changed := el.DecodeString(tt.input, map[string]bool{"http": true, "json": true, "yaml": true})
 			require.Equal(t, tt.changed, changed)
 			require.Equal(t, tt.output, output)
 		})
@@ -211,7 +211,7 @@ func TestRecursiveDecode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res := el.RecursiveDecode(tt.input)
+			res := el.RecursiveDecode(tt.input, map[string]bool{"http": true, "json": true, "yaml": true})
 			require.Equal(t, tt.output, res)
 		})
 	}

@@ -15,7 +15,7 @@ type Query struct {
 
 type Options struct {
 	Debug     bool
-	Recursive bool
+	Recursive *[]string
 	Raw       bool
 	AsCurl    bool
 }
