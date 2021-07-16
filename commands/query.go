@@ -24,12 +24,14 @@ func getQueryCommand(name, usage string) *cobra.Command {
 	ascurl := false
 	recursive := ""
 	limit := 0
+	timeRange := ""
 
 	pflags := cmd.PersistentFlags()
 	pflags.StringArrayVarP(&strs, "filter", "f", []string{}, "filter values like key=value")
 	pflags.BoolVarP(&ascurl, "curl", "", false, "output elasticsearch request as curl")
 	pflags.IntVarP(&limit, "limit", "l", 10, "specify limit for output records")
 	pflags.StringVarP(&recursive, "recursive", "R", "", "toggle recursive decoding")
+	pflags.StringVarP(&timeRange, "time", "t", "", "specify time filter as a/b (equivalent to -f '@timestamp intime a b'")
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		cfg, err := config.ReadConfig(cf.config)
@@ -55,6 +57,19 @@ func getQueryCommand(name, usage string) *cobra.Command {
 		client := elasticsearch.NewClient(cfg)
 		query := &elasticsearch.Query{
 			Filters: []*elasticsearch.Filter{},
+		}
+
+		if timeRange != "" {
+			t := strings.Split(timeRange, "/")
+			if len(t) > 2 {
+				return fmt.Errorf("to many delimiters in timerange='%s'", timeRange)
+			}
+
+			if len(t) == 1 {
+				t = append(t, "now")
+			}
+
+			strs = append(strs, fmt.Sprintf("@timestamp intime %s %s", t[0], t[1]))
 		}
 
 		for _, v := range strs {
