@@ -38,6 +38,91 @@ func TestDecodeString(t *testing.T) {
 			},
 			changed: true,
 		},
+		{
+			name:  "POST HTTP request",
+			input: http1,
+			output: map[string]interface{}{
+				"method":  "POST",
+				"url":     "/api/v1/method",
+				"version": "HTTP/1.1",
+				"headers": map[string]interface{}{
+					"Host":           "somehost",
+					"Content-Length": "17",
+				},
+				"body": `{"random":"body"}`,
+			},
+			changed: true,
+		},
+		{
+			name:  "HTTP request with empty body",
+			input: http2,
+			output: map[string]interface{}{
+				"method":  "POST",
+				"url":     "/api/v1/method",
+				"version": "HTTP/1.1",
+				"headers": map[string]interface{}{
+					"Host":           "somehost",
+					"Content-Length": "0",
+				},
+				"body": ``,
+			},
+			changed: true,
+		},
+		{
+			name:  "GET HTTP request",
+			input: http3,
+			output: map[string]interface{}{
+				"method":  "GET",
+				"url":     "/api/v1/method",
+				"version": "HTTP/1.1",
+				"headers": map[string]interface{}{
+					"Host": "somehost",
+				},
+				"body": ``,
+			},
+			changed: true,
+		},
+		{
+			name:  "HTTP request with ambigous header",
+			input: http4,
+			output: map[string]interface{}{
+				"method":  "GET",
+				"url":     "/api/v1/method",
+				"version": "HTTP/1.1",
+				"headers": map[string]interface{}{
+					"Host":          "somehost",
+					"SpecialHeader": "value: with: special: delimiter: ",
+				},
+				"body": ``,
+			},
+			changed: true,
+		},
+		{
+			name:    "invalid HTTP request",
+			input:   http5,
+			output:  http5,
+			changed: false,
+		},
+		{
+			name:    "invalid HTTP method",
+			input:   http6,
+			output:  http6,
+			changed: false,
+		},
+		{
+			name:  "HTTP request with \\r\\n in them",
+			input: http7,
+			output: map[string]interface{}{
+				"method":  "GET",
+				"url":     "/api/v1/method",
+				"version": "HTTP/1.1",
+				"headers": map[string]interface{}{
+					"Host": "somehost",
+				},
+				"body": ``,
+			},
+			changed: true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -131,3 +216,39 @@ func TestRecursiveDecode(t *testing.T) {
 		})
 	}
 }
+
+var http1 = `POST /api/v1/method HTTP/1.1
+Host: somehost
+Content-Length: 17
+
+{"random":"body"}`
+
+var http2 = `POST /api/v1/method HTTP/1.1
+Host: somehost
+Content-Length: 0
+
+`
+
+var http3 = `GET /api/v1/method HTTP/1.1
+Host: somehost
+
+`
+
+var http4 = `GET /api/v1/method HTTP/1.1
+Host: somehost
+SpecialHeader: value: with: special: delimiter: 
+
+`
+
+var http5 = `GET /api/v1/method HTTP/1.1
+Host: somehost
+InvalidHeaderLine
+
+`
+
+var http6 = `HELLO /api/v1/method HTTP/1.1
+Host: somehost
+
+`
+
+var http7 = "GET /api/v1/method HTTP/1.1\r\nHost: somehost\r\n\r\n"

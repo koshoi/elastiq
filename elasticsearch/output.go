@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"strings"
 
 	"github.com/go-yaml/yaml"
 
@@ -28,6 +29,64 @@ func jsonOutput(records []map[string]interface{}) (io.Reader, error) {
 	return bytes.NewReader(buf.Bytes()), nil
 }
 
+func decodeHTTPRequest(str string) interface{} {
+	result := map[string]interface{}{}
+
+	lines := strings.Split(str, "\n")
+
+	if len(lines) < 2 {
+		return nil
+	}
+
+	if strings.HasSuffix(lines[0], "\r") {
+		lines = strings.Split(str, "\r\n")
+		if len(lines) < 2 {
+			return nil
+		}
+	}
+
+	words := strings.Split(lines[0], " ")
+	if len(words) != 3 {
+		return nil
+	}
+
+	switch words[0] {
+	case "POST", "GET", "HEAD", "PUT", "DELETE":
+	default:
+		return nil
+	}
+
+	result["method"] = words[0]
+	result["url"] = words[1]
+	result["version"] = words[2]
+
+	bodyPos := -1
+	headers := map[string]interface{}{}
+	for i := 1; i < len(lines); i++ {
+		line := lines[i]
+		if line == "" {
+			bodyPos = i + 1
+			break
+		}
+
+		words := strings.Split(line, ": ")
+
+		if len(words) < 2 {
+			return nil
+		}
+
+		headers[words[0]] = strings.Join(words[1:], ": ")
+	}
+
+	result["headers"] = headers
+
+	if bodyPos > 0 {
+		result["body"] = strings.Join(lines[bodyPos:], "\n")
+	}
+
+	return result
+}
+
 func DecodeString(str string) (interface{}, bool) {
 	raw := []byte(str)
 	{
@@ -48,6 +107,13 @@ func DecodeString(str string) (interface{}, bool) {
 		}
 
 		if err := yaml.Unmarshal(raw, &v); err == nil {
+			return v, true
+		}
+	}
+
+	{
+		v := decodeHTTPRequest(str)
+		if v != nil {
 			return v, true
 		}
 	}
