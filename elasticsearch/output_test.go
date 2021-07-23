@@ -30,15 +30,6 @@ func TestDecodeString(t *testing.T) {
 			changed: true,
 		},
 		{
-			name:  "YAML string",
-			input: "---\n  a: b\n  c:\n    - 1\n    - 2\n    - 3\n",
-			output: map[string]interface{}{
-				"a": "b",
-				"c": []interface{}{1, 2, 3},
-			},
-			changed: true,
-		},
-		{
 			name:  "POST HTTP request",
 			input: http1,
 			output: map[string]interface{}{
@@ -127,7 +118,7 @@ func TestDecodeString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			output, changed := el.DecodeString(tt.input, map[string]bool{"http": true, "json": true, "yaml": true})
+			output, changed := el.DecodeString(tt.input, map[string]bool{"http": true, "json": true})
 			require.Equal(t, tt.changed, changed)
 			require.Equal(t, tt.output, output)
 		})
@@ -211,7 +202,7 @@ func TestRecursiveDecode(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			res := el.RecursiveDecode(tt.input, map[string]bool{"http": true, "json": true, "yaml": true})
+			res := el.RecursiveDecode(tt.input, map[string]bool{"http": true, "json": true})
 			require.Equal(t, tt.output, res)
 		})
 	}

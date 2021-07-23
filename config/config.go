@@ -171,7 +171,6 @@ func (c *Config) Validate() error {
 			if vv {
 				v.Decode = map[string]bool{
 					"http": true,
-					"yaml": true,
 					"json": true,
 				}
 			}

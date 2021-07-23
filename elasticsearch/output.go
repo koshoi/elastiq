@@ -8,8 +8,6 @@ import (
 	"io/ioutil"
 	"strings"
 
-	"github.com/go-yaml/yaml"
-
 	"github.com/koshoi/elastiq/config"
 )
 
@@ -89,31 +87,17 @@ func decodeHTTPRequest(str string) interface{} {
 
 func DecodeString(str string, dmap map[string]bool) (interface{}, bool) {
 	raw := []byte(str)
-	{
-		v := map[string]interface{}{}
-		if dmap["json"] {
+	if dmap["json"] {
+		{
+			v := map[string]interface{}{}
 			if err := json.Unmarshal(raw, &v); err == nil {
 				return v, true
 			}
 		}
 
-		if dmap["yaml"] {
-			if err := yaml.Unmarshal(raw, &v); err == nil {
-				return v, true
-			}
-		}
-	}
-
-	{
-		v := []interface{}{}
-		if dmap["json"] {
+		{
+			v := []interface{}{}
 			if err := json.Unmarshal(raw, &v); err == nil {
-				return v, true
-			}
-		}
-
-		if dmap["yaml"] {
-			if err := yaml.Unmarshal(raw, &v); err == nil {
 				return v, true
 			}
 		}

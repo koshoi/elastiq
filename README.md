@@ -77,14 +77,12 @@ or a list of strings (list of decoders to use).
 
 For now there are 3 implemented decoders
 - json
-- yaml
 - http
 
 Using all of them will change record like this
 ```json
 {
 	"somehttp": "GET /health HTTP/1.1\r\nHost: localhost:80\r\nContent-Length: 0\r\n\r\n",
-	"someyaml": "---\n  a: b\n  c:\n    - 1\n    - 2\n    - 3\n",
 	"somejson": "{\"a\":\"b\",\"c\":[1,2,3]}",
 }
 ```
@@ -102,10 +100,6 @@ to this
 			"url": "/health",
 			"version": "HTTP/1.1"
 	},
-	"someyaml":{
-		"a":"b",
-		"c":[1, 2, 3]
-	},
 	"somejson":{
 		"a":"b",
 		"c":[1, 2, 3]
@@ -114,7 +108,7 @@ to this
 ```
 
 You can change recursive decoding behavior from command line using **-R** argument.
-It takes coma separated list of decoders to use (-R json,yaml for example)
+It takes coma separated list of decoders to use (-R json for example)
 
 ## Usage
 
