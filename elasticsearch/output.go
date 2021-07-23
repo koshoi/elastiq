@@ -192,7 +192,11 @@ func applyOutput(r io.Reader, o *config.Output) (io.Reader, error) {
 
 	records := make([]map[string]interface{}, 0, len(resp.Hits.Hits))
 	for _, v := range resp.Hits.Hits {
-		records = append(records, applyOutputFilters(v.Source, o))
+		r := make(map[string]interface{}, len(v.Source))
+		for k, v := range v.Source {
+			r[k] = v.Unwrap()
+		}
+		records = append(records, applyOutputFilters(r, o))
 	}
 
 	if o.Format == "json" {

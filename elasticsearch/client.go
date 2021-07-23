@@ -23,7 +23,7 @@ type client struct {
 type response struct {
 	Hits struct {
 		Hits []struct {
-			Source map[string]interface{} `json:"_source"`
+			Source map[string]JValue `json:"_source"`
 		} `json:"hits"`
 	} `json:"hits"`
 }
