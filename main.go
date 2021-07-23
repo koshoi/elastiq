@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/koshoi/elastiq/commands"
@@ -10,14 +9,14 @@ import (
 
 func main() {
 	var rootCmd = &cobra.Command{
-		Use:   "elastiq",
-		Short: "CLI for ElastricSearch",
+		Use:          "elastiq",
+		Short:        "CLI for ElastricSearch",
+		SilenceUsage: true,
 	}
 
 	commands.AddQueryCommand(rootCmd)
 
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
 		os.Exit(1)
 	}
 }

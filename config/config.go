@@ -182,8 +182,14 @@ func (c *Config) Validate() error {
 				v.Decode[vvv] = true
 			}
 
+		case []interface{}:
+			v.Decode = map[string]bool{}
+			for _, vvv := range vv {
+				v.Decode[fmt.Sprint(vvv)] = true
+			}
+
 		default:
-			return fmt.Errorf("can't handle %v as decode_recursively in output='%s', allowed values are bool or []string", vv, k)
+			return fmt.Errorf("can't handle %v (type=%T) as decode_recursively in output='%s', allowed values are bool or []string", vv, vv, k)
 		}
 	}
 
