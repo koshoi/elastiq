@@ -43,6 +43,24 @@ func TestParseFilter(t *testing.T) {
 			},
 		},
 		{
+			name:  "not equals filter",
+			input: "qwe!=asd",
+			output: el.Filter{
+				Operation: el.NEQ,
+				Key:       "qwe",
+				Value:     []string{"asd"},
+			},
+		},
+		{
+			name:  "not equals filter with quoted value",
+			input: "qwe!='asd zxc'",
+			output: el.Filter{
+				Operation: el.NEQ,
+				Key:       "qwe",
+				Value:     []string{"asd zxc"},
+			},
+		},
+		{
 			name:  "filter with single quoted strings",
 			input: "qwe='das asd'",
 			output: el.Filter{
@@ -189,6 +207,26 @@ func TestParseFilter(t *testing.T) {
 			input: "qwe unknown qwe",
 			err:   true,
 		},
+		{
+			name:  "invalid operator for greater",
+			input: "qwe >! qwe",
+			err:   true,
+		},
+		{
+			name:  "invalid operator for not equals",
+			input: "qwe !> qwe",
+			err:   true,
+		},
+		{
+			name:  "invalid operator for strict equals",
+			input: "qwe =! qwe",
+			err:   true,
+		},
+		{
+			name:  "invalid operator for less",
+			input: "qwe <> qwe",
+			err:   true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -257,10 +295,8 @@ func TestComposeFilter(t *testing.T) {
 			},
 			output: []interface{}{
 				map[string]interface{}{
-					"must_not": map[string]interface{}{
-						"match_phrase": map[string]string{
-							"qwe": "asd",
-						},
+					"match_phrase": map[string]string{
+						"qwe": "asd",
 					},
 				},
 			},

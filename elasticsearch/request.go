@@ -12,6 +12,7 @@ type RawOrder struct {
 type RawFilter struct {
 	Filter               []interface{} `json:"filter"`
 	Should               interface{}   `json:"should"`
+	MustNot              []interface{} `json:"must_not"`
 	MinimumShouldMatches int           `json:"minimum_should_match"`
 }
 
@@ -57,6 +58,7 @@ func ComposeRequest(q *Query) ([]byte, error) {
 	}
 
 	rfs := []interface{}{}
+	mustnots := []interface{}{}
 	shoulds := []interface{}{}
 	shouldsCnt := 0
 
@@ -68,6 +70,8 @@ func ComposeRequest(q *Query) ([]byte, error) {
 		if f.Operation == IN {
 			shouldsCnt++
 			shoulds = append(shoulds, rf...)
+		} else if f.Operation == NEQ {
+			mustnots = append(mustnots, rf...)
 		} else {
 			rfs = append(rfs, rf...)
 		}
@@ -77,6 +81,7 @@ func ComposeRequest(q *Query) ([]byte, error) {
 		Bool: RawFilter{
 			Filter:               rfs,
 			Should:               shoulds,
+			MustNot:              mustnots,
 			MinimumShouldMatches: shouldsCnt,
 		},
 	}

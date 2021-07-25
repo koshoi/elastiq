@@ -114,6 +114,18 @@ func ParseFilter(filter string, tfs TimeFilterSettings) (*Filter, error) {
 			}
 		}
 
+	case "!":
+		if value != "=" {
+			return nil, fmt.Errorf("failed to parse 'not equals' filter: expected '=', got '%s'", value)
+		}
+
+		if len(tokens) != 4 {
+			return nil, fmt.Errorf("missing value")
+		}
+
+		f.Operation = NEQ
+		f.Value = []string{unquoteValue(tokens[3])}
+
 	case "in", "IN":
 		if len(tokens) == 2 {
 			return nil, fmt.Errorf("missing values")
@@ -220,10 +232,8 @@ func ComposeFilter(f *Filter) ([]interface{}, error) {
 
 	case NEQ:
 		res = map[string]interface{}{
-			"must_not": map[string]interface{}{
-				"match_phrase": map[string]string{
-					f.Key: f.Value[0],
-				},
+			"match_phrase": map[string]string{
+				f.Key: f.Value[0],
 			},
 		}
 
