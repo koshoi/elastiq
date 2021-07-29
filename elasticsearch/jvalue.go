@@ -10,7 +10,7 @@ func (jv *JValue) Unwrap() interface{} {
 	v := jv.V
 	switch vv := v.(type) {
 	case []JValue:
-		res := make([]interface{}, 0, len(vv))
+		res := make([]interface{}, len(vv))
 		for i, v := range vv {
 			res[i] = v.Unwrap()
 		}

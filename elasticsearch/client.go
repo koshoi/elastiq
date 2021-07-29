@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/koshoi/elastiq/config"
@@ -42,6 +43,10 @@ func (c *client) Query(ctx context.Context, e *config.Env, q *Query, o Options) 
 	output, err := c.config.GetOutput(e, q.Output)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get output: %w", err)
+	}
+
+	if o.FromStdin {
+		return applyOutput(os.Stdin, output)
 	}
 
 	if index == "" {

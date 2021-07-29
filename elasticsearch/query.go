@@ -18,4 +18,5 @@ type Options struct {
 	Recursive *[]string
 	Raw       bool
 	AsCurl    bool
+	FromStdin bool
 }

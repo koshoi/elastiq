@@ -87,6 +87,7 @@ func getQueryCommand(name, usage string) *cobra.Command {
 
 		options := elasticsearch.Options{
 			Debug:     cf.debug,
+			FromStdin: cf.stdin,
 			AsCurl:    ascurl,
 			Recursive: nil,
 		}
