@@ -10,10 +10,11 @@ import (
 
 func TestParseFilter(t *testing.T) {
 	tests := []struct {
-		name   string
-		input  string
-		output el.Filter
-		err    bool
+		name    string
+		input   string
+		output  el.Filter
+		err     bool
+		aliases map[string]string
 	}{
 		{
 			name:  "filter",
@@ -22,6 +23,32 @@ func TestParseFilter(t *testing.T) {
 				Operation: el.EQ,
 				Key:       "qwe",
 				Value:     []string{"asd"},
+			},
+		},
+		{
+			name:  "filter with aliases",
+			input: "app=myapplication",
+			output: el.Filter{
+				Operation: el.EQ,
+				Key:       "kubernetes.labels.app",
+				Value:     []string{"myapplication"},
+			},
+			aliases: map[string]string{
+				"app": "kubernetes.labels.app",
+				"env": "kubernetes.labels.environment",
+			},
+		},
+		{
+			name:  "filter with not required aliases",
+			input: "qwe=asd",
+			output: el.Filter{
+				Operation: el.EQ,
+				Key:       "qwe",
+				Value:     []string{"asd"},
+			},
+			aliases: map[string]string{
+				"app": "kubernetes.labels.app",
+				"env": "kubernetes.labels.environment",
 			},
 		},
 		{
@@ -236,7 +263,7 @@ func TestParseFilter(t *testing.T) {
 				TimeZone:   time.UTC,
 				TimeFormat: time.RFC3339,
 				Now:        &now,
-			})
+			}, tt.aliases)
 			if tt.err {
 				require.Error(t, err)
 			} else {

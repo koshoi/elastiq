@@ -39,6 +39,7 @@ type Output struct {
 type Config struct {
 	Envs    map[string]*Env    `toml:"env"`
 	Outputs map[string]*Output `toml:"output"`
+	Aliases map[string]string  `toml:"aliases"`
 }
 
 func FromStringList(l []string) map[string]bool {

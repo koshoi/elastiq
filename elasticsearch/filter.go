@@ -50,7 +50,7 @@ func unquoteValue(str string) string {
 	}
 }
 
-func ParseFilter(filter string, tfs TimeFilterSettings) (*Filter, error) {
+func ParseFilter(filter string, tfs TimeFilterSettings, aliases map[string]string) (*Filter, error) {
 	f := Filter{}
 
 	var s scanner.Scanner
@@ -195,6 +195,10 @@ func ParseFilter(filter string, tfs TimeFilterSettings) (*Filter, error) {
 				// "time", "intime", "TIME", "INTIME"
 			}, ", "),
 		)
+	}
+
+	if alias, ok := aliases[f.Key]; ok {
+		f.Key = alias
 	}
 
 	return &f, nil

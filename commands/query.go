@@ -87,7 +87,7 @@ func getQueryCommand(name, usage string) *cobra.Command {
 		}
 
 		for _, v := range strs {
-			filter, err := elasticsearch.ParseFilter(v, timeSettings)
+			filter, err := elasticsearch.ParseFilter(v, timeSettings, cfg.Aliases)
 			if err != nil {
 				return fmt.Errorf("failed to parse filter='%s': %w", v, err)
 			}

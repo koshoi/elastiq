@@ -21,3 +21,7 @@ format = "json"
 
 [output.all]
 format = "json"
+
+[aliases]
+app = "kubernetes.labels.app"
+env = "kubernetes.labels.environment"
