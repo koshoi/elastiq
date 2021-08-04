@@ -24,6 +24,7 @@ type Env struct {
 	TimeFormat    string         `toml:"time_format"`
 	Limit         int            `toml:"limit"`
 	Output        string         `toml:"output"`
+	Order         string         `toml:"order"`
 }
 
 type Output struct {

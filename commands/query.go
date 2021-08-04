@@ -25,6 +25,7 @@ func getQueryCommand(name, usage string) *cobra.Command {
 	recursive := ""
 	limit := 0
 	timeRange := ""
+	orderBy := ""
 
 	pflags := cmd.PersistentFlags()
 	pflags.StringArrayVarP(&strs, "filter", "f", []string{}, "filter values like key=value")
@@ -32,6 +33,7 @@ func getQueryCommand(name, usage string) *cobra.Command {
 	pflags.IntVarP(&limit, "limit", "l", 10, "specify limit for output records")
 	pflags.StringVarP(&recursive, "recursive", "R", "", "toggle recursive decoding")
 	pflags.StringVarP(&timeRange, "time", "t", "", "specify time filter as a/b (equivalent to -f '@timestamp intime a b'")
+	pflags.StringVarP(&orderBy, "orderby", "O", "", "specify records order (defaults to descending by @timestamp)")
 
 	cmd.RunE = func(cmd *cobra.Command, args []string) error {
 		cfg, err := config.ReadConfig(cf.config)
@@ -57,6 +59,18 @@ func getQueryCommand(name, usage string) *cobra.Command {
 		client := elasticsearch.NewClient(cfg)
 		query := &elasticsearch.Query{
 			Filters: []*elasticsearch.Filter{},
+		}
+
+		if orderBy == "" {
+			orderBy = e.Order
+		}
+
+		if orderBy != "" {
+			o, err := elasticsearch.GetOrder(orderBy)
+			if err != nil {
+				return fmt.Errorf("failed to parse order: %w", err)
+			}
+			query.Order = o
 		}
 
 		if timeRange != "" {
