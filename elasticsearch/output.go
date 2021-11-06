@@ -161,10 +161,10 @@ func applyOutputFilters(record map[string]interface{}, o *config.Output) map[str
 	return record
 }
 
-func applyOutput(r io.Reader, o *config.Output) (io.Reader, error) {
+func parseResponse(r io.Reader) (*response, error) {
 	j, err := ioutil.ReadAll(r)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read all response: %w", err)
+		return nil, fmt.Errorf("failed to read all: %w", err)
 	}
 
 	resp := response{}
@@ -174,6 +174,19 @@ func applyOutput(r io.Reader, o *config.Output) (io.Reader, error) {
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
+	return &resp, nil
+}
+
+func applyOutputFromReader(r io.Reader, o *config.Output) (io.Reader, error) {
+	resp, err := parseResponse(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return applyOutput(resp, o)
+}
+
+func applyOutput(resp *response, o *config.Output) (io.Reader, error) {
 	records := make([]map[string]interface{}, 0, len(resp.Hits.Hits))
 	for _, v := range resp.Hits.Hits {
 		r := make(map[string]interface{}, len(v.Source))

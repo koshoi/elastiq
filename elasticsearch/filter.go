@@ -157,12 +157,12 @@ func ParseFilter(filter string, tfs TimeFilterSettings, aliases map[string]strin
 			now = (*tfs.Now).In(tfs.TimeZone)
 		}
 
-		from, err := ParseDate(tokens[2], now)
+		from, err := ParseDate(unquoteValue(tokens[2]), now)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse str='%s' as date: %w", tokens[2], err)
 		}
 
-		to, err := ParseDate(tokens[3], now)
+		to, err := ParseDate(unquoteValue(tokens[3]), now)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse str='%s' as date: %w", tokens[3], err)
 		}

@@ -23,6 +23,7 @@ func getQueryCommand(name, usage string) *cobra.Command {
 	strs := []string{}
 	ascurl := false
 	recursive := ""
+	raw := false
 	limit := 0
 	timeRange := ""
 	orderBy := ""
@@ -30,7 +31,8 @@ func getQueryCommand(name, usage string) *cobra.Command {
 	pflags := cmd.PersistentFlags()
 	pflags.StringArrayVarP(&strs, "filter", "f", []string{}, "filter values like key=value")
 	pflags.BoolVarP(&ascurl, "curl", "", false, "output elasticsearch request as curl")
-	pflags.IntVarP(&limit, "limit", "l", 10, "specify limit for output records")
+	pflags.BoolVarP(&raw, "raw", "r", false, "toggle raw ouput from elasticsearch (disables output post processing)")
+	pflags.IntVarP(&limit, "limit", "l", 10, "specify limit for output records (specifying more than 10000 will apply paging)")
 	pflags.StringVarP(&recursive, "recursive", "R", "", "toggle recursive decoding")
 	pflags.StringVarP(&timeRange, "time", "t", "", "specify time filter as a/b (equivalent to -f '@timestamp intime a b'")
 	pflags.StringVarP(&orderBy, "orderby", "O", "", "specify records order (defaults to descending by @timestamp)")
@@ -83,7 +85,7 @@ func getQueryCommand(name, usage string) *cobra.Command {
 				t = append(t, "now")
 			}
 
-			strs = append(strs, fmt.Sprintf("@timestamp intime %s %s", t[0], t[1]))
+			strs = append(strs, fmt.Sprintf("@timestamp intime '%s' '%s'", t[0], t[1]))
 		}
 
 		for _, v := range strs {
@@ -102,6 +104,7 @@ func getQueryCommand(name, usage string) *cobra.Command {
 		options := elasticsearch.Options{
 			Debug:     cf.debug,
 			FromStdin: cf.stdin,
+			Raw:       raw,
 			AsCurl:    ascurl,
 			Recursive: nil,
 		}

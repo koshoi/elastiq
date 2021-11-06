@@ -30,13 +30,17 @@ var timeFormats = []dateFormat{
 	{false, false, false, "2006-01-02 15:04:05"},
 	{false, false, false, "2006-01-02 15:04:05.00"},
 
-	{false, true, true, "Mon 15:04"},
-	{false, true, true, "Mon 15:04:05"},
-	{false, true, true, "Mon 15:04:05.00"},
+	{false, false, true, "Jan 02"},
+	{false, false, true, "Jan 02 15:04"},
+	{false, false, true, "Jan 02 15:04:05"},
+	{false, false, true, "Jan 02 15:04:05.00"},
 
-	{false, false, true, "Jan Mon 15:04"},
-	{false, false, true, "Jan Mon 15:04:05"},
-	{false, false, true, "Jan Mon 15:04:05.00"},
+	{false, false, true, "January 02"},
+	{false, false, true, "January 02 15:04"},
+	{false, false, true, "January 02 15:04:05"},
+	{false, false, true, "January 02 15:04:05.00"},
+
+	{false, false, false, "2006-01-02"},
 }
 
 func ParseDate(str string, now time.Time) (time.Time, error) {

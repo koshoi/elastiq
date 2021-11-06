@@ -10,6 +10,8 @@ type Order struct {
 	Ascending bool
 }
 
+type StartFrom *[]interface{}
+
 func GetOrder(order string) (*Order, error) {
 	parts := strings.Split(order, "/")
 	if len(parts) > 2 {

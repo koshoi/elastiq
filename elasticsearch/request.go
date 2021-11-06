@@ -21,12 +21,13 @@ type RawQuery struct {
 }
 
 type ElasticRequest struct {
-	Limit int                   `json:"size"`
-	Sort  []map[string]RawOrder `json:"sort"`
-	Query RawQuery              `json:"query"`
+	Limit     int                   `json:"size"`
+	StartFrom StartFrom             `json:"search_after,omitempty"`
+	Sort      []map[string]RawOrder `json:"sort"`
+	Query     RawQuery              `json:"query"`
 }
 
-func ComposeRequest(q *Query) ([]byte, error) {
+func ComposeRequest(q *Query, sf StartFrom) ([]byte, error) {
 	order := q.Order
 	if order == nil {
 		order = &Order{
@@ -49,7 +50,8 @@ func ComposeRequest(q *Query) ([]byte, error) {
 	}
 
 	elkr := ElasticRequest{
-		Limit: limit,
+		Limit:     limit,
+		StartFrom: sf,
 		Sort: []map[string]RawOrder{
 			{
 				order.By: o,
