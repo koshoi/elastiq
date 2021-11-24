@@ -205,6 +205,24 @@ func TestParseFilter(t *testing.T) {
 			},
 		},
 		{
+			name:  "exists",
+			input: "qwe ex",
+			output: el.Filter{
+				Operation: el.EX,
+				Key:       "qwe",
+				Value:     []string{},
+			},
+		},
+		{
+			name:  "exists short",
+			input: "qwe^",
+			output: el.Filter{
+				Operation: el.EX,
+				Key:       "qwe",
+				Value:     []string{},
+			},
+		},
+		{
 			name:  "no input",
 			input: "",
 			err:   true,
@@ -432,6 +450,21 @@ func TestComposeFilter(t *testing.T) {
 				map[string]interface{}{
 					"match_phrase": map[string]string{
 						"qwe": "lkj",
+					},
+				},
+			},
+		},
+		{
+			name: "basic exists",
+			filter: el.Filter{
+				Key:       "qwe",
+				Value:     []string{},
+				Operation: el.EX,
+			},
+			output: []interface{}{
+				map[string]interface{}{
+					"exists": map[string]string{
+						"field": "qwe",
 					},
 				},
 			},

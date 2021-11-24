@@ -21,6 +21,8 @@ const (
 	IN  FilterOperation = "in"
 	LK  FilterOperation = "lk"
 	BT  FilterOperation = "bt"
+	EX  FilterOperation = "ex"
+	NEX FilterOperation = "nex"
 )
 
 type Filter struct {
@@ -71,13 +73,18 @@ func ParseFilter(filter string, tfs TimeFilterSettings, aliases map[string]strin
 		tokens = append(tokens, s.TokenText())
 	}
 
-	if len(tokens) < 3 {
-		return nil, fmt.Errorf("insufficient tokens to compose filter, at least 3 required")
+	if len(tokens) < 2 {
+		return nil, fmt.Errorf("insufficient tokens to compose filter, at least 2 required")
 	}
 
 	f.Key = unquoteValue(tokens[0])
 	op := tokens[1]
-	value := tokens[2]
+
+	value := ""
+	if len(tokens) > 2 {
+		value = tokens[2]
+	}
+
 	switch op {
 	case ">", "<", "=":
 		if value == "=" {
@@ -172,6 +179,14 @@ func ParseFilter(filter string, tfs TimeFilterSettings, aliases map[string]strin
 			unquoteValue(from.In(tfs.TimeZone).Format(tfs.TimeFormat)),
 			unquoteValue(to.In(tfs.TimeZone).Format(tfs.TimeFormat)),
 		}
+
+	case "ex", "EX", "exists", "EXISTS", "^":
+		if len(tokens) > 2 {
+			return nil, fmt.Errorf("too many values")
+		}
+
+		f.Operation = EX
+		f.Value = []string{}
 
 	// case "like", "LIKE", "~":
 	// 	if len(tokens) < 3 {
@@ -279,6 +294,13 @@ func ComposeFilter(f *Filter) ([]interface{}, error) {
 		res = map[string]interface{}{
 			"match_phrase": map[string]string{
 				f.Key: f.Value[0],
+			},
+		}
+
+	case EX:
+		res = map[string]interface{}{
+			"exists": map[string]string{
+				"field": f.Key,
 			},
 		}
 	}

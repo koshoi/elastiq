@@ -2,6 +2,7 @@ package elasticsearch
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -44,19 +45,20 @@ func (jv *JValue) UnmarshalJSON(data []byte) error {
 		s := string(data)
 		i, err := strconv.Atoi(s)
 		if err == nil {
-			jv.V = i
+			// jv.V = i
+			jv.V = fmt.Sprintf("%d", i)
 			return nil
 		}
 
 		i64, err := strconv.ParseInt(s, 10, 64)
 		if err == nil {
-			jv.V = i64
+			jv.V = fmt.Sprintf("%d", i64)
 			return nil
 		}
 
 		u64, err := strconv.ParseUint(s, 10, 64)
 		if err == nil {
-			jv.V = u64
+			jv.V = fmt.Sprintf("%d", u64)
 			return nil
 		}
 	}
