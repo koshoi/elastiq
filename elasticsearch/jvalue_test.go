@@ -47,28 +47,28 @@ func TestJValue_Unmarshal(t *testing.T) {
 			name:  "JSON with int that looses precission in float",
 			input: `{"a":603427666509977819}`,
 			output: map[string]el.JValue{
-				"a": j(603427666509977819),
+				"a": j("603427666509977819"),
 			},
 		},
 		{
 			name:  "JSON with negative int that looses precission in float",
 			input: `{"a":-603427666509977819}`,
 			output: map[string]el.JValue{
-				"a": j(-603427666509977819),
+				"a": j("-603427666509977819"),
 			},
 		},
 		{
 			name:  "JSON with negative int64",
 			input: `{"a":-9223372036854775807}`,
 			output: map[string]el.JValue{
-				"a": j(-9223372036854775807),
+				"a": j("-9223372036854775807"),
 			},
 		},
 		{
 			name:  "JSON with uint64",
 			input: `{"a":18446744073709551615}`,
 			output: map[string]el.JValue{
-				"a": j(uint64(18446744073709551615)),
+				"a": j("18446744073709551615"),
 			},
 		},
 		{
@@ -76,7 +76,7 @@ func TestJValue_Unmarshal(t *testing.T) {
 			input: `{"a":{"b":18446744073709551615}}`,
 			output: map[string]el.JValue{
 				"a": j(map[string]el.JValue{
-					"b": j(uint64(18446744073709551615)),
+					"b": j("18446744073709551615"),
 				}),
 			},
 		},
