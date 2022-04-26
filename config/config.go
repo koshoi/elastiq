@@ -14,6 +14,11 @@ type Authorization struct {
 	Password string
 }
 
+type DatadogEnv struct {
+	DDAPIKey string `toml:"dd_api_key"`
+	DDAppKey string `toml:"dd_personal_key"`
+}
+
 type Env struct {
 	Endpoints     []string       `toml:"endpoints"`
 	Authorization *Authorization `toml:"authorization"`
@@ -25,6 +30,9 @@ type Env struct {
 	Limit         int            `toml:"limit"`
 	Output        string         `toml:"output"`
 	Order         string         `toml:"order"`
+	Source        string         `toml:"source"`
+
+	DatadogEnv
 }
 
 type Output struct {

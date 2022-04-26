@@ -1,17 +1,16 @@
-package elasticsearch
+package output
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strings"
 
-	"github.com/koshoi/elastiq/config"
+	"elastiq/config"
 )
 
-func jsonOutput(records []map[string]interface{}) (io.Reader, error) {
+func JSONOutput(records []map[string]interface{}) (io.Reader, error) {
 	buf := &bytes.Buffer{}
 	enc := json.NewEncoder(buf)
 	enc.SetEscapeHTML(false)
@@ -138,7 +137,7 @@ func RecursiveDecode(i interface{}, dmap map[string]bool) interface{} {
 	return i
 }
 
-func applyOutputFilters(record map[string]interface{}, o *config.Output) map[string]interface{} {
+func ApplyOutputFilters(record map[string]interface{}, o *config.Output) map[string]interface{} {
 	if o.Only != nil {
 		final := map[string]interface{}{}
 		for _, k := range o.Only {
@@ -159,46 +158,4 @@ func applyOutputFilters(record map[string]interface{}, o *config.Output) map[str
 	}
 
 	return record
-}
-
-func parseResponse(r io.Reader) (*response, error) {
-	j, err := ioutil.ReadAll(r)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read all: %w", err)
-	}
-
-	resp := response{}
-
-	err = json.Unmarshal(j, &resp)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse response: %w", err)
-	}
-
-	return &resp, nil
-}
-
-func applyOutputFromReader(r io.Reader, o *config.Output) (io.Reader, error) {
-	resp, err := parseResponse(r)
-	if err != nil {
-		return nil, err
-	}
-
-	return applyOutput(resp, o)
-}
-
-func applyOutput(resp *response, o *config.Output) (io.Reader, error) {
-	records := make([]map[string]interface{}, 0, len(resp.Hits.Hits))
-	for _, v := range resp.Hits.Hits {
-		r := make(map[string]interface{}, len(v.Source))
-		for k, v := range v.Source {
-			r[k] = v.Unwrap()
-		}
-		records = append(records, applyOutputFilters(r, o))
-	}
-
-	if o.Format == "json" {
-		return jsonOutput(records)
-	}
-
-	return nil, fmt.Errorf("format='%s' is not implemented", o.Format)
 }

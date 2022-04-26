@@ -1,4 +1,4 @@
-module github.com/koshoi/elastiq
+module elastiq
 
 go 1.15
 

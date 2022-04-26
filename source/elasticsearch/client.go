@@ -4,13 +4,19 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"strings"
 
-	"github.com/koshoi/elastiq/config"
+	"elastiq/client"
+	"elastiq/config"
+	"elastiq/jvalue"
+	"elastiq/output"
+	"elastiq/query"
 )
 
 const maxRecordsPerRequest = 10000
@@ -18,24 +24,20 @@ const maxRecordsPerRequest = 10000
 // for development
 // const maxRecordsPerRequest = 2
 
-type Client interface {
-	Query(ctx context.Context, env *config.Env, q *Query, o Options) (io.Reader, error)
-}
-
-type client struct {
+type elasticlient struct {
 	config *config.Config
 }
 
 type response struct {
 	Hits struct {
 		Hits []struct {
-			Source map[string]JValue `json:"_source"`
-			Sort   StartFrom         `json:"sort"`
+			Source map[string]jvalue.JValue `json:"_source"`
+			Sort   query.StartFrom          `json:"sort"`
 		} `json:"hits"`
 	} `json:"hits"`
 }
 
-func (c *client) Query(ctx context.Context, e *config.Env, q *Query, o Options) (io.Reader, error) {
+func (c *elasticlient) Query(ctx context.Context, e *config.Env, q *query.Query, o query.Options) (io.Reader, error) {
 	total := q.Limit
 
 	// maximum records per request from elasticsearch
@@ -63,7 +65,7 @@ func (c *client) Query(ctx context.Context, e *config.Env, q *Query, o Options) 
 
 	ep := fmt.Sprintf("%s/%s/_search?pretty", e.GetEndpoint(), index)
 	iteration := 0
-	sf := StartFrom(nil)
+	sf := query.StartFrom(nil)
 
 	readers := []io.Reader{}
 
@@ -147,6 +149,48 @@ func (c *client) Query(ctx context.Context, e *config.Env, q *Query, o Options) 
 	return io.MultiReader(readers...), nil
 }
 
-func NewClient(cfg *config.Config) Client {
-	return &client{config: cfg}
+func NewClient(cfg *config.Config) client.Client {
+	return &elasticlient{config: cfg}
+}
+
+func parseResponse(r io.Reader) (*response, error) {
+	j, err := ioutil.ReadAll(r)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read all: %w", err)
+	}
+
+	resp := response{}
+
+	err = json.Unmarshal(j, &resp)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	return &resp, nil
+}
+
+func applyOutputFromReader(r io.Reader, o *config.Output) (io.Reader, error) {
+	resp, err := parseResponse(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return applyOutput(resp, o)
+}
+
+func applyOutput(resp *response, o *config.Output) (io.Reader, error) {
+	records := make([]map[string]interface{}, 0, len(resp.Hits.Hits))
+	for _, v := range resp.Hits.Hits {
+		r := make(map[string]interface{}, len(v.Source))
+		for k, v := range v.Source {
+			r[k] = v.Unwrap()
+		}
+		records = append(records, output.ApplyOutputFilters(r, o))
+	}
+
+	if o.Format == "json" {
+		return output.JSONOutput(records)
+	}
+
+	return nil, fmt.Errorf("format='%s' is not implemented", o.Format)
 }

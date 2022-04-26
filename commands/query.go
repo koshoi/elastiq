@@ -6,8 +6,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/koshoi/elastiq/config"
-	"github.com/koshoi/elastiq/elasticsearch"
+	"elastiq/config"
+	q "elastiq/query"
+	"elastiq/source/elasticsearch"
+
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 )
@@ -53,14 +55,14 @@ func getQueryCommand(name, usage string) *cobra.Command {
 			return err
 		}
 
-		timeSettings := elasticsearch.TimeFilterSettings{
+		timeSettings := q.TimeFilterSettings{
 			TimeZone:   tz,
 			TimeFormat: e.GetTimeFormat(cf.tf),
 		}
 
 		client := elasticsearch.NewClient(cfg)
-		query := &elasticsearch.Query{
-			Filters: []*elasticsearch.Filter{},
+		query := &q.Query{
+			Filters: []*q.Filter{},
 		}
 
 		if orderBy == "" {
@@ -68,7 +70,7 @@ func getQueryCommand(name, usage string) *cobra.Command {
 		}
 
 		if orderBy != "" {
-			o, err := elasticsearch.GetOrder(orderBy)
+			o, err := q.GetOrder(orderBy)
 			if err != nil {
 				return fmt.Errorf("failed to parse order: %w", err)
 			}
@@ -89,7 +91,7 @@ func getQueryCommand(name, usage string) *cobra.Command {
 		}
 
 		for _, v := range strs {
-			filter, err := elasticsearch.ParseFilter(v, timeSettings, cfg.Aliases)
+			filter, err := q.ParseFilter(v, timeSettings, cfg.Aliases)
 			if err != nil {
 				return fmt.Errorf("failed to parse filter='%s': %w", v, err)
 			}
@@ -101,7 +103,7 @@ func getQueryCommand(name, usage string) *cobra.Command {
 		query.Output = cf.output
 		query.Limit = e.GetLimit(limit)
 
-		options := elasticsearch.Options{
+		options := q.Options{
 			Debug:     cf.debug,
 			FromStdin: cf.stdin,
 			Raw:       raw,

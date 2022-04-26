@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/koshoi/elastiq/commands"
+	"elastiq/commands"
 	"github.com/spf13/cobra"
 )
 
