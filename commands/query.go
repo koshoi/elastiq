@@ -32,7 +32,7 @@ func getQueryCommand(name, usage string) *cobra.Command {
 	pflags.StringArrayVarP(&strs, "filter", "f", []string{}, "filter values like key=value")
 	pflags.BoolVarP(&ascurl, "curl", "", false, "output elasticsearch request as curl")
 	pflags.BoolVarP(&raw, "raw", "r", false, "toggle raw ouput from elasticsearch (disables output post processing)")
-	pflags.IntVarP(&limit, "limit", "l", 10, "specify limit for output records (specifying more than 10000 will apply paging)")
+	pflags.IntVarP(&limit, "limit", "l", 50, "specify limit for output records (specifying more than 10000 will apply paging)")
 	pflags.StringVarP(&recursive, "recursive", "R", "", "toggle recursive decoding")
 	pflags.StringVarP(&timeRange, "time", "t", "", "specify time filter as a/b (equivalent to -f '@timestamp intime a b'")
 	pflags.StringVarP(&orderBy, "orderby", "O", "", "specify records order (defaults to descending by @timestamp)")
