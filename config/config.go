@@ -9,6 +9,13 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
+type Source string
+
+const (
+	SourceDataDog       Source = "datadog"
+	SourceElasticSearch Source = "elasticsearch"
+)
+
 type Authorization struct {
 	User     string
 	Password string
@@ -30,7 +37,7 @@ type Env struct {
 	Limit         int            `toml:"limit"`
 	Output        string         `toml:"output"`
 	Order         string         `toml:"order"`
-	Source        string         `toml:"source"`
+	Source        Source         `toml:"source"`
 
 	DatadogEnv
 }
@@ -169,6 +176,10 @@ func (c *Config) Validate() error {
 	for k, v := range c.Envs {
 		if len(v.Endpoints) == 0 {
 			return fmt.Errorf("env='%s' has zero endpoints", k)
+		}
+
+		if v.Source == "" {
+			v.Source = SourceElasticSearch
 		}
 	}
 

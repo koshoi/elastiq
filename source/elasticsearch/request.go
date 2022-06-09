@@ -70,12 +70,15 @@ func ComposeRequest(q *query.Query, sf query.StartFrom) ([]byte, error) {
 		if err != nil {
 			return nil, fmt.Errorf("failed to compose filter for %v: %w", f, err)
 		}
-		if f.Operation == query.IN {
+		switch f.Operation {
+		case query.IN:
 			shouldsCnt++
 			shoulds = append(shoulds, rf...)
-		} else if f.Operation == query.NEQ {
+
+		case query.NEQ:
 			mustnots = append(mustnots, rf...)
-		} else {
+
+		default:
 			rfs = append(rfs, rf...)
 		}
 	}

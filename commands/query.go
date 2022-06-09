@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"elastiq/client"
 	"elastiq/config"
 	q "elastiq/query"
 	"elastiq/source/elasticsearch"
@@ -60,7 +61,14 @@ func getQueryCommand(name, usage string) *cobra.Command {
 			TimeFormat: e.GetTimeFormat(cf.tf),
 		}
 
-		client := elasticsearch.NewClient(cfg)
+		var client client.Client
+		switch e.Source {
+		case config.SourceElasticSearch:
+			client = elasticsearch.NewClient(cfg)
+		case config.SourceDataDog:
+			client = elasticsearch.NewClient(cfg)
+		}
+
 		query := &q.Query{
 			Filters: []*q.Filter{},
 		}
