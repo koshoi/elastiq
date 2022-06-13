@@ -56,6 +56,7 @@ func (c *ddclient) Query(ctx context.Context, e *config.Env, q *query.Query, o q
 
 		var req *http.Request
 		var body []byte
+
 		if sf != nil {
 			ssf := *sf
 			ep = fmt.Sprint(ssf[0])
@@ -64,9 +65,14 @@ func (c *ddclient) Query(ctx context.Context, e *config.Env, q *query.Query, o q
 				return nil, fmt.Errorf("failed to create http request: %w", err)
 			}
 		} else {
-			body, err = composeRequest(q, sf)
+			ddq, err := composeRequest(q, sf)
 			if err != nil {
 				return nil, fmt.Errorf("failed to compose request: %w", err)
+			}
+
+			body, err = json.Marshal(ddq)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marsahl request: %w", err)
 			}
 
 			req, err = http.NewRequestWithContext(ctx, "POST", ep, bytes.NewReader(body))

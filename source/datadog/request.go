@@ -2,18 +2,19 @@ package datadog
 
 import (
 	"elastiq/query"
-	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
 )
 
+type DataDogFilter struct {
+	Query string `json:"query"`
+	From  int64  `json:"from"`
+	To    int64  `json:"to"`
+}
+
 type DataDogRequest struct {
-	Filter struct {
-		Query string `json:"query"`
-		From  int64  `json:"from"`
-		To    int64  `json:"to"`
-	} `json:"filter"`
+	Filter DataDogFilter `json:"filter"`
 }
 
 var ddSpecialChars = []string{
@@ -39,7 +40,7 @@ func ddEscapeFilter(key, value string) string {
 			value = strings.ReplaceAll(value, sc, "?")
 		}
 
-		return value
+		return strings.ReplaceAll(value, " ", "?")
 	}
 
 	for _, sc := range ddSpecialChars {
@@ -49,7 +50,7 @@ func ddEscapeFilter(key, value string) string {
 	return value
 }
 
-func composeRequest(q *query.Query, sf query.StartFrom) ([]byte, error) {
+func composeRequest(q *query.Query, sf query.StartFrom) (*DataDogRequest, error) {
 	ddq := DataDogRequest{}
 
 	queryFilters := []string{}
@@ -85,14 +86,13 @@ func composeRequest(q *query.Query, sf query.StartFrom) ([]byte, error) {
 
 			ddq.Filter.From = from * 1000
 			ddq.Filter.To = to * 1000
+
+		default:
+			return nil, fmt.Errorf("%s filter is not supported yet", f.Operation)
 		}
 	}
 
 	ddq.Filter.Query = strings.Join(queryFilters, " ")
-	qq, err := json.Marshal(ddq)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal dd json query: %w", err)
-	}
 
-	return qq, nil
+	return &ddq, nil
 }
