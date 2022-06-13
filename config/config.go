@@ -85,6 +85,10 @@ func (e *Env) GetTimezone(tz string) (*time.Location, error) {
 }
 
 func (e *Env) GetTimeFormat(tf string) string {
+	if e.Source == SourceDataDog {
+		return "timestamp"
+	}
+
 	if tf != "" {
 		return tf
 	}

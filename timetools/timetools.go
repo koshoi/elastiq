@@ -1,4 +1,4 @@
-package query
+package timetools
 
 import (
 	"fmt"
@@ -10,6 +10,8 @@ import (
 const layoutYear = "2006"
 const layoutMonth = "01"
 const layoutDay = "02"
+
+const Timestamp = "timestamp"
 
 type dateFormat struct {
 	missDay   bool
@@ -110,4 +112,16 @@ func ParseDate(str string, now time.Time) (time.Time, error) {
 	}
 
 	return t, fmt.Errorf("no matching layout was found to parse %s", str)
+}
+
+func FormatDate(t time.Time, format string) string {
+	switch format {
+	case Timestamp, "ts", "unix timestamp":
+		return fmt.Sprintf("%d", t.Unix())
+
+	case "RFC3339", "rfc3339":
+		return t.Format(time.RFC3339)
+	}
+
+	return t.Format(format)
 }

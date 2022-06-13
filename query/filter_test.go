@@ -200,7 +200,7 @@ func TestParseFilter(t *testing.T) {
 			name:  "intime",
 			input: "qwe intime -1d now",
 			output: q.Filter{
-				Operation: q.BT,
+				Operation: q.BTT,
 				Key:       "qwe",
 				Value:     []string{"2021-07-13T15:38:34Z", "2021-07-14T15:38:34Z"},
 			},

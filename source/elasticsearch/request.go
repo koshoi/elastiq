@@ -151,7 +151,7 @@ func ComposeFilter(f *query.Filter) ([]interface{}, error) {
 	case query.LTE:
 		res = rangeStatement("lte", f.Key, f.Value[0])
 
-	case query.BT:
+	case query.BT, query.BTT:
 		res = map[string]interface{}{
 			"range": map[string]interface{}{
 				f.Key: map[string]string{

@@ -9,6 +9,7 @@ import (
 	"elastiq/client"
 	"elastiq/config"
 	q "elastiq/query"
+	"elastiq/source/datadog"
 	"elastiq/source/elasticsearch"
 
 	"github.com/spf13/cobra"
@@ -66,7 +67,7 @@ func getQueryCommand(name, usage string) *cobra.Command {
 		case config.SourceElasticSearch:
 			client = elasticsearch.NewClient(cfg)
 		case config.SourceDataDog:
-			client = elasticsearch.NewClient(cfg)
+			client = datadog.NewClient(cfg)
 		}
 
 		query := &q.Query{

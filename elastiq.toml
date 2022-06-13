@@ -10,6 +10,14 @@ default   = false
 index     = "prod-*"
 output    = "pretty"
 
+[env.dd]
+endpoints       = ["https://api.datadoghq.eu/"]
+default         = false
+source          = "datadog"
+output          = "pretty"
+dd_api_key      = "get one from your DevOps"
+dd_personal_key = "get one in your account settings"
+
 [output.pretty]
 exclude = ["kubernetes", "message", "@timestamp"]
 format = "json"

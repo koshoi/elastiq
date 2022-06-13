@@ -1,6 +1,7 @@
 package query
 
 import (
+	"elastiq/timetools"
 	"fmt"
 	"strings"
 	"text/scanner"
@@ -11,18 +12,19 @@ import (
 type FilterOperation string
 
 const (
-	EQ  FilterOperation = "eq"
-	TEQ FilterOperation = "teq"
-	NEQ FilterOperation = "neq"
-	GT  FilterOperation = "gt"
-	GTE FilterOperation = "gte"
-	LT  FilterOperation = "lt"
-	LTE FilterOperation = "lte"
-	IN  FilterOperation = "in"
-	LK  FilterOperation = "lk"
-	BT  FilterOperation = "bt"
-	EX  FilterOperation = "ex"
-	NEX FilterOperation = "nex"
+	EQ  FilterOperation = "eq"  // equals
+	TEQ FilterOperation = "teq" // term equals
+	NEQ FilterOperation = "neq" // not equals
+	GT  FilterOperation = "gt"  // greater than
+	GTE FilterOperation = "gte" // greater or equal than
+	LT  FilterOperation = "lt"  // less than
+	LTE FilterOperation = "lte" // less or equal than
+	IN  FilterOperation = "in"  // in
+	LK  FilterOperation = "lk"  // like
+	BT  FilterOperation = "bt"  // between
+	BTT FilterOperation = "btt" // between time
+	EX  FilterOperation = "ex"  // exists
+	NEX FilterOperation = "nex" // not exists
 )
 
 type Filter struct {
@@ -164,20 +166,20 @@ func ParseFilter(filter string, tfs TimeFilterSettings, aliases map[string]strin
 			now = (*tfs.Now).In(tfs.TimeZone)
 		}
 
-		from, err := ParseDate(unquoteValue(tokens[2]), now)
+		from, err := timetools.ParseDate(unquoteValue(tokens[2]), now)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse str='%s' as date: %w", tokens[2], err)
 		}
 
-		to, err := ParseDate(unquoteValue(tokens[3]), now)
+		to, err := timetools.ParseDate(unquoteValue(tokens[3]), now)
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse str='%s' as date: %w", tokens[3], err)
 		}
 
-		f.Operation = BT
+		f.Operation = BTT
 		f.Value = []string{
-			unquoteValue(from.In(tfs.TimeZone).Format(tfs.TimeFormat)),
-			unquoteValue(to.In(tfs.TimeZone).Format(tfs.TimeFormat)),
+			unquoteValue(timetools.FormatDate(from.In(tfs.TimeZone), tfs.TimeFormat)),
+			unquoteValue(timetools.FormatDate(to.In(tfs.TimeZone), tfs.TimeFormat)),
 		}
 
 	case "ex", "EX", "exists", "EXISTS", "^":
