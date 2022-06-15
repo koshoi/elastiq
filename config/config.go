@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/base64"
 	"fmt"
 	"math/rand"
 	"strings"
@@ -16,9 +17,36 @@ const (
 	SourceElasticSearch Source = "elasticsearch"
 )
 
+type AuthHeaderSpecification struct {
+	Value   *string  `toml:"value"`
+	Command []string `toml:"command"`
+}
+
+func (ahs *AuthHeaderSpecification) GetValue() string {
+	if ahs.Value != nil {
+		return *ahs.Value
+	}
+
+	if len(ahs.Command) > 0 {
+		// FIXME implement it
+		panic("not implemented yet")
+	}
+
+	return ""
+}
+
 type Authorization struct {
-	User     string
-	Password string
+	Header map[string]AuthHeaderSpecification `toml:"header"`
+
+	Basic *struct {
+		User     string `toml:"user"`
+		Password string `toml:"password"`
+	} `toml:"basic"`
+
+	Cloud *struct {
+		CloudID string `toml:"cloud_id"`
+		APIKey  string `toml:"api_key"`
+	} `toml:"cloud"`
 }
 
 type DatadogEnv struct {
@@ -64,6 +92,30 @@ func FromStringList(l []string) map[string]bool {
 	}
 
 	return vv
+}
+
+// copy-pasted from https://github.com/elastic/go-elasticsearch/blob/7.17/elasticsearch.go#L447
+// addrFromCloudID extracts the Elasticsearch URL from CloudID.
+// See: https://www.elastic.co/guide/en/cloud/current/ec-cloud-id.html
+//
+func addrFromCloudID(input string) (string, error) {
+	var scheme = "https://"
+
+	values := strings.Split(input, ":")
+	if len(values) != 2 {
+		return "", fmt.Errorf("unexpected format: %q", input)
+	}
+	data, err := base64.StdEncoding.DecodeString(values[1])
+	if err != nil {
+		return "", err
+	}
+	parts := strings.Split(string(data), "$")
+
+	if len(parts) < 2 {
+		return "", fmt.Errorf("invalid encoded value: %s", parts)
+	}
+
+	return fmt.Sprintf("%s%s.%s", scheme, parts[1], parts[0]), nil
 }
 
 func (e *Env) GetEndpoint() string {
@@ -178,12 +230,41 @@ func (c *Config) Validate() error {
 	}
 
 	for k, v := range c.Envs {
-		if len(v.Endpoints) == 0 {
-			return fmt.Errorf("env='%s' has zero endpoints", k)
-		}
-
 		if v.Source == "" {
 			v.Source = SourceElasticSearch
+		}
+
+		if auth := v.Authorization; auth != nil {
+			authHeader := ""
+			if auth.Basic != nil {
+				authHeader = fmt.Sprintf(
+					"Basic %s",
+					base64.StdEncoding.EncodeToString([]byte(auth.Basic.User+":"+auth.Basic.Password)),
+				)
+			}
+
+			if auth.Cloud != nil {
+				ep, err := addrFromCloudID(auth.Cloud.CloudID)
+				if err != nil {
+					return fmt.Errorf("env='%s' has invalid cloud_id: %w", k, err)
+				}
+
+				v.Endpoints = []string{ep}
+
+				authHeader = "APIKey " + auth.Cloud.APIKey
+			}
+
+			if authHeader != "" {
+				if auth.Header == nil {
+					auth.Header = map[string]AuthHeaderSpecification{}
+				}
+
+				auth.Header["Authorization"] = AuthHeaderSpecification{Value: &authHeader}
+			}
+		}
+
+		if len(v.Endpoints) == 0 {
+			return fmt.Errorf("env='%s' has zero endpoints", k)
 		}
 	}
 

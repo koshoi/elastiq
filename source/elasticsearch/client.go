@@ -3,7 +3,6 @@ package elasticsearch
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -80,18 +79,11 @@ func (c *elasticlient) Query(ctx context.Context, e *config.Env, q *query.Query,
 		req, err := http.NewRequestWithContext(ctx, "POST", ep, bytes.NewReader(body))
 		req.Header.Add("content-type", "application/json")
 		if e.Authorization != nil {
-			req.Header.Add(
-				"Authorization",
-				fmt.Sprintf(
-					"Basic %s",
-					base64.StdEncoding.EncodeToString(
-						[]byte(
-							e.Authorization.User+":"+e.Authorization.Password,
-						),
-					),
-				),
-			)
+			for k, v := range e.Authorization.Header {
+				req.Header.Add(k, v.GetValue())
+			}
 		}
+
 		if err != nil {
 			return nil, fmt.Errorf("failed to create http request: %w", err)
 		}

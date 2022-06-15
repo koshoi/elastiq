@@ -29,11 +29,49 @@ default   = true
 index     = "dev-*"
 output    = "pretty"
 
+[env.dev2]
+endpoints = ["http://localhost:9201"]
+default   = false
+index     = "dev-*"
+output    = "pretty"
+
+[env.dev2.authorization.basic]
+user     = "username"
+password = "some password"
+
+[env.dev3]
+default   = false
+index     = "dev-*"
+output    = "pretty"
+
+[env.dev3.authorization.cloud]
+cloud_id = "my-organization:ZXVyb3BlLXdlc3QzLmdjcC5jbG91ZC5lcy5pbzo0NDMkYmliYSRib2JhCg=="
+api_key  = "aG9iYTpzaG1vYmEK"
+
+[env.dev4]
+endpoints = ["http://localhost:9203"]
+default   = false
+index     = "dev-*"
+output    = "pretty"
+
+[env.dev4.authorization.header.Authorization]
+value = "special header value"
+
+[env.dev4.authorization.header.ExtraAuthorization]
+value = "special header value2"
+
 [env.prod]
 endpoints = ["http://localhost:9299"]
 default   = false
 index     = "prod-*"
 output    = "pretty"
+
+[env.dd]
+endpoints       = ["https://api.datadoghq.eu"]
+default         = false
+source          = "datadog"
+dd_api_key      = "get one from your DevOps"
+dd_personal_key = "get one from your datadog settings"
 
 [output.pretty]
 exclude = ["kubernetes", "message", "@timestamp"]
@@ -46,6 +84,10 @@ format = "json"
 
 [output.all]
 format = "json"
+
+[aliases]
+app = "kubernetes.labels.app"
+env = "kubernetes.labels.environment"
 ```
 
 The config file lists **environments** and **outputs**
@@ -75,7 +117,7 @@ It contains
 **decode_recursively** can be either boolean (if true, it will try to decode using every known decoder)
 or a list of strings (list of decoders to use).
 
-For now there are 3 implemented decoders
+For now there are 2 implemented decoders
 - json
 - http
 
