@@ -100,7 +100,8 @@ func (c *ddclient) Query(ctx context.Context, e *config.Env, q *query.Query, o q
 		}
 
 		if res.StatusCode != 200 {
-			return nil, fmt.Errorf("got unexpected http code=%d", res.StatusCode)
+			errBody, _ := ioutil.ReadAll(res.Body)
+			return nil, fmt.Errorf("got unexpected http code=%d, body='%s'", res.StatusCode, string(errBody))
 		}
 
 		if o.Raw {
