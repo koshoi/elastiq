@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -27,15 +28,12 @@ var timeFormats = []dateFormat{
 
 	{false, false, false, "2006-01-02T15:04"},
 	{false, false, false, "2006-01-02T15:04:05"},
-	{false, false, false, "2006-01-02T15:04:05.00"},
 	{false, false, false, "2006-01-02 15:04"},
 	{false, false, false, "2006-01-02 15:04:05"},
-	{false, false, false, "2006-01-02 15:04:05.00"},
 
 	{false, false, true, "Jan 02"},
 	{false, false, true, "Jan 02 15:04"},
 	{false, false, true, "Jan 02 15:04:05"},
-	{false, false, true, "Jan 02 15:04:05.00"},
 
 	{false, false, true, "January 02"},
 	{false, false, true, "January 02 15:04"},
@@ -43,6 +41,23 @@ var timeFormats = []dateFormat{
 	{false, false, true, "January 02 15:04:05.00"},
 
 	{false, false, false, "2006-01-02"},
+}
+
+func populateDateFormatWithMilliseconds(df dateFormat) {
+	for i := 1; i <= 10; i++ {
+		newDateFormat := df
+		newDateFormat.fmt += "." + strings.Repeat("0", i)
+		timeFormats = append(timeFormats, newDateFormat)
+		newDateFormat.fmt += "Z"
+		timeFormats = append(timeFormats, newDateFormat)
+	}
+}
+
+func init() {
+	populateDateFormatWithMilliseconds(dateFormat{false, false, false, "2006-01-02T15:04:05"})
+	populateDateFormatWithMilliseconds(dateFormat{false, false, false, "2006-01-02 15:04:05"})
+	populateDateFormatWithMilliseconds(dateFormat{false, false, true, "January 02 15:04:05"})
+	populateDateFormatWithMilliseconds(dateFormat{false, false, true, "Jan 02 15:04:05"})
 }
 
 func ParseDate(str string, now time.Time) (time.Time, error) {
