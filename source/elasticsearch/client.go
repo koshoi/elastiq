@@ -62,7 +62,7 @@ func (c *elasticlient) Query(ctx context.Context, e *config.Env, q *query.Query,
 		return nil, fmt.Errorf("neither index was specified, nor default index for env was found")
 	}
 
-	ep := fmt.Sprintf("%s/%s/_search?pretty", e.GetEndpoint(), index)
+	ep := fmt.Sprintf("%s/%s/_search?pretty=true", e.GetEndpoint(), index)
 	iteration := 0
 	sf := query.StartFrom(nil)
 
